@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/frame_all"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/background_white_shadow"
+    tools:context=".fragment.AllNewsFragment">
+<include
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    layout="@layout/recyclerview_layout"
+    />
+
+</FrameLayout>

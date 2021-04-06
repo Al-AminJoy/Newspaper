@@ -10,6 +10,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import android.os.StrictMode;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,6 +21,10 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.LoadAdError;
+import com.google.android.gms.ads.interstitial.InterstitialAd;
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
 import com.ssit.newspaper.R;
 
 import org.jsoup.Jsoup;
@@ -30,6 +35,7 @@ import java.io.IOException;
 public class NewsDetailsFragment extends Fragment {
     private WebView webView;
     private String url;
+    private InterstitialAd mInterstitialAd;
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,7 +45,24 @@ public class NewsDetailsFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
+        AdRequest adRequest = new AdRequest.Builder().build();
+
+        InterstitialAd.load(getContext(),"ca-app-pub-3940256099942544/1033173712", adRequest, new InterstitialAdLoadCallback() {
+            @Override
+            public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
+                // The mInterstitialAd reference will be null until
+                // an ad is loaded.
+                mInterstitialAd = interstitialAd;
+                Log.i("TAG", "onAdLoaded");
+            }
+
+            @Override
+            public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
+                // Handle the error
+                Log.i("TAG", loadAdError.getMessage());
+                mInterstitialAd = null;
+            }
+        });
         return inflater.inflate(R.layout.fragment_news_details, container, false);
     }
 
@@ -105,6 +128,32 @@ public class NewsDetailsFragment extends Fragment {
             super.onReceivedError(view, request, error);
         }
     }
+   /* private void showDialog() {
+        LayoutInflater layoutInflater = LayoutInflater.from(this);
+        View view = layoutInflater.inflate(R.layout.alert_dialog_layout, null);
+        TextView tvYes = view.findViewById(R.id.tvDialogYesId);
+        TextView tvNo = view.findViewById(R.id.tvDialogNoId);
+        TextView tvRate = view.findViewById(R.id.tvDialogRateId);
+        final AlertDialog alertDialog = new AlertDialog.Builder(this)
+                .setView(view).setCancelable(false).create();
+        tvNo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //Toast.makeText(getApplicationContext(), "Cancelled", Toast.LENGTH_SHORT).show();
+                alertDialog.cancel();
+            }
+        });
+        tvYes.setOnClickListener(this);
+        tvRate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                rateApp();
+                alertDialog.cancel();
+            }
+        });
+        alertDialog.show();
+    }*/
+
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
@@ -116,6 +165,11 @@ public class NewsDetailsFragment extends Fragment {
             public boolean onKey(View v, int keyCode, KeyEvent event) {
                 if (event.getAction() == KeyEvent.ACTION_DOWN) {
                     if (keyCode == KeyEvent.KEYCODE_BACK) {
+                        if (mInterstitialAd != null) {
+                            mInterstitialAd.show(getActivity());
+                        } else {
+                            Log.d("TAG", "The interstitial ad wasn't ready yet.");
+                        }
                         Toast.makeText(getActivity(), "Back Pressed", Toast.LENGTH_SHORT).show();
                         getActivity().finish();
                         /*AllNewsFragment fragment=new AllNewsFragment();

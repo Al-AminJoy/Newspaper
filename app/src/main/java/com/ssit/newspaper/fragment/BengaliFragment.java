@@ -10,6 +10,7 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,6 +22,10 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.LoadAdError;
+import com.google.android.gms.ads.interstitial.InterstitialAd;
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
 import com.ssit.newspaper.R;
 import com.ssit.newspaper.adapter.NewsAdapter;
 import com.ssit.newspaper.communication.FragmentCommunication;
@@ -41,9 +46,28 @@ public class BengaliFragment extends Fragment {
     private RecyclerView recyclerView;
     private NewsAdapter adapter;
     private FrameLayout frameLayout;
+    private InterstitialAd mInterstitialAd;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        AdRequest adRequest = new AdRequest.Builder().build();
+
+        InterstitialAd.load(getContext(),"ca-app-pub-3940256099942544/1033173712", adRequest, new InterstitialAdLoadCallback() {
+            @Override
+            public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
+                // The mInterstitialAd reference will be null until
+                // an ad is loaded.
+                mInterstitialAd = interstitialAd;
+                Log.i("TAG", "onAdLoaded");
+            }
+
+            @Override
+            public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
+                // Handle the error
+                Log.i("TAG", loadAdError.getMessage());
+                mInterstitialAd = null;
+            }
+        });
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_bangla, container, false);
     }
@@ -59,10 +83,16 @@ public class BengaliFragment extends Fragment {
         newsList= Common.bengaliList;
         adapter=new NewsAdapter(getContext(),newsList,communication);
         recyclerView.setAdapter(adapter);
+        adapter.notifyDataSetChanged();
     }
     FragmentCommunication communication=new FragmentCommunication() {
         @Override
         public void respond(String url) {
+            if (mInterstitialAd != null) {
+                mInterstitialAd.show(getActivity());
+            } else {
+                Log.d("TAG", "The interstitial ad wasn't ready yet.");
+            }
             NewsDetailsFragment fragment=new NewsDetailsFragment();
             Bundle bundle=new Bundle();
             bundle.putString("URL",url);
@@ -80,7 +110,7 @@ public class BengaliFragment extends Fragment {
     private void initRecyclerView(View view) {
         recyclerView = view.findViewById(R.id.rv);
         recyclerView.setHasFixedSize(true);
-        GridLayoutManager gridLayoutManager = new GridLayoutManager(getActivity(), 1);
+        GridLayoutManager gridLayoutManager = new GridLayoutManager(getActivity(), 2);
         recyclerView.setLayoutManager(gridLayoutManager);
     }
 

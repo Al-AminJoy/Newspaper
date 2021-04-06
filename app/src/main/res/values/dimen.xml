@@ -57,4 +57,13 @@
     <dimen name="padding24dp">24dp</dimen>
     <dimen name="padding32dp">32dp</dimen>
     <dimen name="padding64dp">64dp</dimen>
+
+
+    <dimen name="dialogIconSize">24dp</dimen>
+    <dimen name="exitAlertMarginLeft">10dp</dimen>
+    <dimen name="exitAlertTextSize">24sp</dimen>
+    <dimen name="exitdialogTextSize">18sp</dimen>
+    <dimen name="confirming_Dialog_marginTop">5dp</dimen>
+    <dimen name="dialogNoMarginRight">30dp</dimen>
+    <dimen name="dialogNoMarginLeft">20dp</dimen>
 </resources>

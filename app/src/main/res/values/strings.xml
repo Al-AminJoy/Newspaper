@@ -6,4 +6,6 @@
     <string name="admob_ad_id">ca-app-pub-3940256099942544~3347511713</string>
     <string name="industrial_ad_id">ca-app-pub-3940256099942544/1033173712</string>
     <string name="banner_ad_id">ca-app-pub-3940256099942544/6300978111</string>
+    <string name="open">open</string>
+    <string name="close">close</string>
 </resources>

@@ -17,8 +17,8 @@ public class NewsViewHolder extends RecyclerView.ViewHolder {
 
     public NewsViewHolder(@NonNull View itemView) {
         super(itemView);
-      tvNewsPaper=itemView.findViewById(R.id.tv_news_name);
-      ivNews=itemView.findViewById(R.id.iv_news_paper);
-      cardView=itemView.findViewById(R.id.cv_news);
+        tvNewsPaper = itemView.findViewById(R.id.tv_news_name);
+        ivNews = itemView.findViewById(R.id.iv_news_paper);
+        cardView = itemView.findViewById(R.id.cv_news);
     }
 }

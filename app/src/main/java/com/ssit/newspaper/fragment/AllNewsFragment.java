@@ -1,5 +1,6 @@
 package com.ssit.newspaper.fragment;
 
+import android.app.ProgressDialog;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -11,14 +12,15 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
-import android.widget.SearchView;
-import android.widget.Toast;
+
+import androidx.appcompat.widget.SearchView;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -27,15 +29,13 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.LoadAdError;
-import com.google.android.gms.ads.MobileAds;
-import com.google.android.gms.ads.initialization.InitializationStatus;
-import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
 import com.google.android.gms.ads.interstitial.InterstitialAd;
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
 import com.ssit.newspaper.R;
 import com.ssit.newspaper.adapter.NewsAdapter;
 import com.ssit.newspaper.communication.FragmentCommunication;
 import com.ssit.newspaper.model.News;
+import com.ssit.newspaper.presenter.BasePresenter;
 import com.ssit.newspaper.singleton.VolleySingleton;
 import com.ssit.newspaper.utlis.Common;
 
@@ -47,24 +47,34 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AllNewsFragment extends Fragment {
+
     private RecyclerView recyclerView;
-    private List<News> newsList = new ArrayList<>();
+    private List<News> newsList=new ArrayList<>();
     private List<News> bengaliList = new ArrayList<>();
     private List<News> englishList = new ArrayList<>();
     private List<News> onlineList = new ArrayList<>();
     private List<News> localList = new ArrayList<>();
     private List<News> othersList = new ArrayList<>();
     private List<News> interNationalList = new ArrayList<>();
-    private NewsAdapter adapter;
+    private  NewsAdapter adapter;
     private RequestQueue requestQueue;
     private FrameLayout frameLayout;
     private InterstitialAd mInterstitialAd;
+    private ProgressDialog progressDialog;
+    private  static String val="";
+  //  SearchView searchView;
+
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         AdRequest adRequest = new AdRequest.Builder().build();
-
         InterstitialAd.load(getContext(),"ca-app-pub-3940256099942544/1033173712", adRequest, new InterstitialAdLoadCallback() {
             @Override
             public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
@@ -73,7 +83,6 @@ public class AllNewsFragment extends Fragment {
                 mInterstitialAd = interstitialAd;
                 Log.i("TAG", "onAdLoaded");
             }
-
             @Override
             public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
                 // Handle the error
@@ -85,11 +94,33 @@ public class AllNewsFragment extends Fragment {
     }
 
     @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.search_menu, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+        final MenuItem myActionMenuItem = menu.findItem(R.id.nav_Search);
+        SearchView searchView = (SearchView) myActionMenuItem.getActionView();
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+           public boolean onQueryTextSubmit(String s) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String s) {
+                adapter.getFilter().filter(s);
+                return true;
+
+            }
+        });
+    }
+
+    @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         initId(view);
         initRecyclerView(view);
-        requestQueue = VolleySingleton.getInstance(getContext()).getRequestQueue();
+        progressOp();
+        requestQueue=VolleySingleton.getInstance(getContext()).getRequestQueue();
         loadData();
 
     }
@@ -97,17 +128,13 @@ public class AllNewsFragment extends Fragment {
     private void initId(View view) {
     frameLayout=view.findViewById(R.id.frame_all);
     }
-
+    private void progressOp() {
+        progressDialog = new ProgressDialog(getActivity(), R.style.ProgressColor);
+        progressDialog.setMessage("Loading...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+    }
     private void loadData() {
-        requestQueue.getCache().clear();
-        Common.onlineList.clear();
-        Common.bengaliList.clear();
-        Common.englishList.clear();
-        Common.localList.clear();
-        Common.internationalList.clear();
-        Common.othersList.clear();
-        newsList.clear();
-
         String url = "https://jsonkeeper.com/b/R9HK";
         JsonArrayRequest arrayRequest = new JsonArrayRequest(Request.Method.GET, url, null, new Response.Listener<JSONArray>() {
             @Override
@@ -124,13 +151,13 @@ public class AllNewsFragment extends Fragment {
                         String url = receive.getString("link");
                         News news = new News(id, serialNo, newsType, englishName, banglaName, image, url);
 
-                         if (newsType.equals("online")){
+                        if (newsType.equals("online")){
                             onlineList.add(news);
 
                         }
                         else if (newsType.equals("Bn_paper")){
                             bengaliList.add(news);
-                            Toast.makeText(getContext(),"Adding",Toast.LENGTH_SHORT).show();
+                            //Toast.makeText(getContext(),"Adding",Toast.LENGTH_SHORT).show();
                         }
                         else if (newsType.equals("En_paper")){
                             englishList.add(news);
@@ -154,9 +181,11 @@ public class AllNewsFragment extends Fragment {
                     Common.localList=localList;
                     Common.othersList=othersList;
                     Common.bengaliList=bengaliList;
-                    adapter = new NewsAdapter(getActivity(), newsList,communication);
+                    Common.allNewsList=newsList;
+                    adapter = new NewsAdapter(getContext(), newsList,communication);
                     recyclerView.setAdapter(adapter);
                     adapter.notifyDataSetChanged();
+
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -170,6 +199,7 @@ public class AllNewsFragment extends Fragment {
             }
         });
         requestQueue.add(arrayRequest);
+        progressDialog.dismiss();
     }
     FragmentCommunication communication=new FragmentCommunication() {
         @Override
@@ -179,6 +209,7 @@ public class AllNewsFragment extends Fragment {
             } else {
                 Log.d("TAG", "The interstitial ad wasn't ready yet.");
             }
+
             NewsDetailsFragment fragment=new NewsDetailsFragment();
             Bundle bundle=new Bundle();
             bundle.putString("URL",url);
@@ -190,13 +221,11 @@ public class AllNewsFragment extends Fragment {
 
     };
 
-
     private void initRecyclerView(View view) {
         recyclerView = view.findViewById(R.id.rv);
         recyclerView.setHasFixedSize(true);
         GridLayoutManager gridLayoutManager = new GridLayoutManager(getActivity(), 2);
         recyclerView.setLayoutManager(gridLayoutManager);
     }
-
 
 }

@@ -1,34 +1,33 @@
-package com.ssit.newspaper.fragment;
-
-import android.app.AlertDialog;
-import android.graphics.Bitmap;
-import android.os.Bundle;
+package com.ssit.newspaper.activity;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 
+import android.app.AlertDialog;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.os.Bundle;
 import android.os.StrictMode;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.interstitial.InterstitialAd;
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
 import com.ssit.newspaper.R;
+import com.ssit.newspaper.fragment.NewsDetailsFragment;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -37,23 +36,21 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class NewsDetailsFragment extends Fragment {
+public class NewsDetailsActivity extends AppCompatActivity {
     private WebView webView;
     private String url;
+    private String name;
     private InterstitialAd mInterstitialAd;
-
+    private Toolbar toolbar;
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        url = getArguments().getString("URL");
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+        setContentView(R.layout.activity_news_details);
+        url=getIntent().getStringExtra("URL");
+        name=getIntent().getStringExtra("NAME");
         AdRequest adRequest = new AdRequest.Builder().build();
 
-        InterstitialAd.load(getContext(), "ca-app-pub-3940256099942544/1033173712", adRequest, new InterstitialAdLoadCallback() {
+        InterstitialAd.load(this, "ca-app-pub-3940256099942544/1033173712", adRequest, new InterstitialAdLoadCallback() {
             @Override
             public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
 
@@ -68,18 +65,27 @@ public class NewsDetailsFragment extends Fragment {
                 mInterstitialAd = null;
             }
         });
-        return inflater.inflate(R.layout.fragment_news_details, container, false);
     }
 
     @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        initId(view);
+    protected void onStart() {
+        super.onStart();
+        initId();
+        toolbar();
         loadURL();
+
     }
 
-    private void initId(View view) {
-        webView = view.findViewById(R.id.wvId);
+    private void toolbar() {
+        toolbar=findViewById(R.id.main_toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(true);
+        getSupportActionBar().setTitle(name);
+        toolbar.setTitleTextColor(ContextCompat.getColor(this, R.color.white));
+    }
+
+    private void initId() {
+        webView =findViewById(R.id.wvId);
     }
 
     private void loadURL() {
@@ -89,7 +95,7 @@ public class NewsDetailsFragment extends Fragment {
             Document document = Jsoup.connect(url).get();
             webView.getSettings().setJavaScriptEnabled(true);
             webView.loadDataWithBaseURL(url, document.toString(), "text/html", "utf-8", "");
-            webView.setWebViewClient(new MyWebViewClient());
+            webView.setWebViewClient(new NewsDetailsFragment.MyWebViewClient());
             webView.setOnKeyListener(new View.OnKeyListener() {
                 @Override
                 public boolean onKey(View v, int keyCode, KeyEvent event) {
@@ -123,7 +129,7 @@ public class NewsDetailsFragment extends Fragment {
     }
 
 
-    public static class MyWebViewClient extends WebViewClient {
+    public class MyWebViewClient extends WebViewClient {
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
             return super.shouldOverrideUrlLoading(view, request);
@@ -133,13 +139,13 @@ public class NewsDetailsFragment extends Fragment {
         @Override
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
             super.onPageStarted(view, url, favicon);
-           // webView.setVisibility(View.VISIBLE);
+            webView.setVisibility(View.VISIBLE);
         }
 
         @Override
         public void onPageFinished(WebView view, String url) {
             super.onPageFinished(view, url);
-           // webView.setVisibility(View.VISIBLE);
+            webView.setVisibility(View.VISIBLE);
         }
 
         @Override
@@ -148,51 +154,10 @@ public class NewsDetailsFragment extends Fragment {
         }
     }
 
-    private void showDialog() {
-        LayoutInflater layoutInflater = LayoutInflater.from(getContext());
-        View view = layoutInflater.inflate(R.layout.alert_dialog_layout, null);
-        TextView tvYes = view.findViewById(R.id.tvDialogYesId);
-        TextView tvNo = view.findViewById(R.id.tvDialogNoId);
-        final AlertDialog alertDialog = new AlertDialog.Builder(getContext())
-                .setView(view).setCancelable(false).create();
-        tvNo.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                alertDialog.cancel();
-            }
-        });
-        tvYes.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                getActivity().finish();
-            }
-        });
-        alertDialog.show();
-    }
 
     @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        getView().setFocusableInTouchMode(true);
-        getView().requestFocus();
-
-        getView().setOnKeyListener(new View.OnKeyListener() {
-            @Override
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-                if (event.getAction() == KeyEvent.ACTION_DOWN) {
-                    if (keyCode == KeyEvent.KEYCODE_BACK) {
-                        if (mInterstitialAd != null) {
-                            mInterstitialAd.show(getActivity());
-                        } else {
-                            Log.d("TAG", "The interstitial ad wasn't ready yet.");
-                        }
-                        showDialog();
-
-                        return true;
-                    }
-                }
-                return false;
-            }
-        });
+    public void onBackPressed() {
+        startActivity(new Intent(NewsDetailsActivity.this,MainActivity.class));
+        finish();
     }
 }

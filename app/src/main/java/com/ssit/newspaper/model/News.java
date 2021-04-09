@@ -1,13 +1,13 @@
 package com.ssit.newspaper.model;
 
 public class News {
-        public String n_id;
-        public String sl_no;
-        public String n_type;
-        public String en_name;
-        public String bn_name;
-        public String n_image;
-        public String link;
+    public String n_id;
+    public String sl_no;
+    public String n_type;
+    public String en_name;
+    public String bn_name;
+    public String n_image;
+    public String link;
 
     public News(String n_id, String sl_no, String n_type, String en_name, String bn_name, String n_image, String link) {
         this.n_id = n_id;

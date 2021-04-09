@@ -2,27 +2,27 @@
 <androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".activity.MainActivity">
 
-    <include
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        layout="@layout/dashboard_layout"
-        />
-   <!-- <com.google.android.material.navigation.NavigationView
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/homeNav"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        app:itemIconTint="@color/basicColor"
-        app:menu="@menu/menu"
-        app:itemTextColor="#000"
-        android:id="@+id/homeNav"
         android:layout_gravity="start"
         android:backgroundTint="@color/white"
         android:fitsSystemWindows="true"
-        app:headerLayout="@layout/nav_header_main">
+        app:headerLayout="@layout/nav_header_main"
+        app:itemIconTint="@color/basicColor"
+        app:itemTextColor="#000"
+        app:menu="@menu/menu">
 
     </com.google.android.material.navigation.NavigationView>
--->
+
+    <include
+        layout="@layout/dashboard_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 </androidx.drawerlayout.widget.DrawerLayout>

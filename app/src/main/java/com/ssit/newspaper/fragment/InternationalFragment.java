@@ -4,6 +4,7 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -12,6 +13,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -46,12 +50,19 @@ public class InternationalFragment extends Fragment {
     private NewsAdapter adapter;
     private FrameLayout frameLayout;
     private InterstitialAd mInterstitialAd;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         AdRequest adRequest = new AdRequest.Builder().build();
 
-        InterstitialAd.load(getContext(),"ca-app-pub-3940256099942544/1033173712", adRequest, new InterstitialAdLoadCallback() {
+        InterstitialAd.load(getContext(), "ca-app-pub-3940256099942544/1033173712", adRequest, new InterstitialAdLoadCallback() {
             @Override
             public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
                 // The mInterstitialAd reference will be null until
@@ -66,7 +77,8 @@ public class InternationalFragment extends Fragment {
                 Log.i("TAG", loadAdError.getMessage());
                 mInterstitialAd = null;
             }
-        });        return inflater.inflate(R.layout.fragment_international, container, false);
+        });
+        return inflater.inflate(R.layout.fragment_international, container, false);
     }
 
     @Override
@@ -76,16 +88,40 @@ public class InternationalFragment extends Fragment {
         initRecyclerView(view);
         loadData();
     }
+
     private void initId(View view) {
-        frameLayout=view.findViewById(R.id.frame_international);
+        frameLayout = view.findViewById(R.id.frame_international);
     }
+
     private void loadData() {
-        newsList=Common.internationalList;
-        adapter=new NewsAdapter(getContext(),newsList,communication);
+        newsList = Common.internationalList;
+        adapter = new NewsAdapter(getContext(), newsList, communication);
         recyclerView.setAdapter(adapter);
         adapter.notifyDataSetChanged();
     }
-    FragmentCommunication communication=new FragmentCommunication() {
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.search_menu, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+        final MenuItem myActionMenuItem = menu.findItem(R.id.nav_Search);
+        SearchView searchView = (SearchView) myActionMenuItem.getActionView();
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String s) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String s) {
+                adapter.getFilter().filter(s);
+                return true;
+
+            }
+        });
+    }
+
+    FragmentCommunication communication = new FragmentCommunication() {
         @Override
         public void respond(String url) {
             if (mInterstitialAd != null) {
@@ -93,13 +129,13 @@ public class InternationalFragment extends Fragment {
             } else {
                 Log.d("TAG", "The interstitial ad wasn't ready yet.");
             }
-            NewsDetailsFragment fragment=new NewsDetailsFragment();
-            Bundle bundle=new Bundle();
-            bundle.putString("URL",url);
+            NewsDetailsFragment fragment = new NewsDetailsFragment();
+            Bundle bundle = new Bundle();
+            bundle.putString("URL", url);
             fragment.setArguments(bundle);
-            FragmentManager manager=getFragmentManager();
-            FragmentTransaction transaction=manager.beginTransaction();
-            transaction.replace(R.id.frame_international,fragment).addToBackStack("my_fragment").commit();
+            FragmentManager manager = getFragmentManager();
+            FragmentTransaction transaction = manager.beginTransaction();
+            transaction.replace(R.id.frame_international, fragment).addToBackStack("my_fragment").commit();
         }
 
     };
